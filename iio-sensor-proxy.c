@@ -58,12 +58,6 @@ static const SensorDriver * const drivers[] = {
 	&iio_buffer_accel,
 	&iio_poll_accel,
 	&input_accel,
-	&iio_poll_light,
-	&iio_buffer_light,
-	&hwmon_light,
-	&fake_compass,
-	&fake_light,
-	&iio_buffer_compass
 };
 
 static ReadingsUpdateFunc driver_type_to_callback_func (DriverType type);
