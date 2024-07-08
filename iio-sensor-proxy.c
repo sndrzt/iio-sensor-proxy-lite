@@ -62,8 +62,7 @@ static const SensorDriver * const drivers[] = {
 
 static ReadingsUpdateFunc driver_type_to_callback_func (DriverType type);
 
-static const char *
-driver_type_to_str (DriverType type)
+static const char* driver_type_to_str (DriverType type)
 {
 	switch (type) {
 	case DRIVER_TYPE_ACCEL:
@@ -80,21 +79,14 @@ driver_type_to_str (DriverType type)
 #define DRIVER_FOR_TYPE(driver_type) data->drivers[driver_type]
 #define DEVICE_FOR_TYPE(driver_type) data->devices[driver_type]
 
-static void sensor_changes (GUdevClient *client,
-			    gchar       *action,
-			    GUdevDevice *device,
-			    SensorData  *data);
+static void sensor_changes (GUdevClient *client, gchar *action, GUdevDevice *device, SensorData  *data);
 
-static gboolean
-driver_type_exists (SensorData *data,
-		    DriverType  driver_type)
+static gboolean driver_type_exists (SensorData *data, DriverType  driver_type)
 {
 	return (DRIVER_FOR_TYPE(driver_type) != NULL);
 }
 
-static gboolean
-find_sensors (GUdevClient *client,
-	      SensorData  *data)
+static gboolean find_sensors (GUdevClient *client, SensorData  *data)
 {
 	GList *devices, *input, *platform, *l;
 	gboolean found = FALSE;
@@ -112,12 +104,8 @@ find_sensors (GUdevClient *client,
 
 		for (i = 0; i < G_N_ELEMENTS(drivers); i++) {
 			SensorDriver *driver = (SensorDriver *) drivers[i];
-			if (!driver_type_exists(data, driver->type) &&
-			    driver_discover (driver, dev)) {
-				g_debug ("Found device %s of type %s at %s",
-					 g_udev_device_get_sysfs_path (dev),
-					 driver_type_to_str (driver->type),
-					 driver->name);
+			if (!driver_type_exists(data, driver->type) && driver_discover (driver, dev)) {
+				g_debug ("Found device %s of type %s at %s", g_udev_device_get_sysfs_path (dev), driver_type_to_str (driver->type), driver->name);
 				DEVICE_FOR_TYPE(driver->type) = g_object_ref (dev);
 				DRIVER_FOR_TYPE(driver->type) = (SensorDriver *) driver;
 
@@ -125,9 +113,7 @@ find_sensors (GUdevClient *client,
 			}
 		}
 
-		if (driver_type_exists (data, DRIVER_TYPE_ACCEL) &&
-		    driver_type_exists (data, DRIVER_TYPE_LIGHT) &&
-		    driver_type_exists (data, DRIVER_TYPE_COMPASS))
+		if (driver_type_exists (data, DRIVER_TYPE_ACCEL) && driver_type_exists (data, DRIVER_TYPE_LIGHT) && driver_type_exists (data, DRIVER_TYPE_COMPASS))
 			break;
 	}
 
@@ -135,8 +121,7 @@ find_sensors (GUdevClient *client,
 	return found;
 }
 
-static void
-free_client_watch (gpointer data)
+static void free_client_watch (gpointer data)
 {
 	guint watch_id = GPOINTER_TO_UINT (data);
 
@@ -145,11 +130,9 @@ free_client_watch (gpointer data)
 	g_bus_unwatch_name (watch_id);
 }
 
-static GHashTable *
-create_clients_hash_table (void)
+static GHashTable * create_clients_hash_table (void)
 {
-	return g_hash_table_new_full (g_str_hash, g_str_equal,
-				      g_free, free_client_watch);
+	return g_hash_table_new_full (g_str_hash, g_str_equal, g_free, free_client_watch);
 }
 
 typedef enum {
@@ -161,16 +144,10 @@ typedef enum {
 	PROP_COMPASS_HEADING            = 1 << 5
 } PropertiesMask;
 
-#define PROP_ALL (PROP_HAS_ACCELEROMETER | \
-                  PROP_ACCELEROMETER_ORIENTATION | \
-                  PROP_HAS_AMBIENT_LIGHT | \
-                  PROP_LIGHT_LEVEL)
-#define PROP_ALL_COMPASS (PROP_HAS_COMPASS | \
-			  PROP_COMPASS_HEADING)
+#define PROP_ALL (PROP_HAS_ACCELEROMETER | PROP_ACCELEROMETER_ORIENTATION | PROP_HAS_AMBIENT_LIGHT | PROP_LIGHT_LEVEL)
+#define PROP_ALL_COMPASS (PROP_HAS_COMPASS | PROP_COMPASS_HEADING)
 
-static void
-send_dbus_event (SensorData     *data,
-		 PropertiesMask  mask)
+static void send_dbus_event (SensorData *data, PropertiesMask mask)
 {
 	GVariantBuilder props_builder;
 	GVariant *props_changed = NULL;
@@ -188,8 +165,7 @@ send_dbus_event (SensorData     *data,
 		gboolean has_accel;
 
 		has_accel = driver_type_exists (data, DRIVER_TYPE_ACCEL);
-		g_variant_builder_add (&props_builder, "{sv}", "HasAccelerometer",
-				       g_variant_new_boolean (has_accel));
+		g_variant_builder_add (&props_builder, "{sv}", "HasAccelerometer", g_variant_new_boolean (has_accel));
 
 		/* Send the orientation when the device appears */
 		if (has_accel)
@@ -199,16 +175,14 @@ send_dbus_event (SensorData     *data,
 	}
 
 	if (mask & PROP_ACCELEROMETER_ORIENTATION) {
-		g_variant_builder_add (&props_builder, "{sv}", "AccelerometerOrientation",
-				       g_variant_new_string (orientation_to_string (data->previous_orientation)));
+		g_variant_builder_add (&props_builder, "{sv}", "AccelerometerOrientation", g_variant_new_string (orientation_to_string (data->previous_orientation)));
 	}
 
 	if (mask & PROP_HAS_AMBIENT_LIGHT) {
 		gboolean has_als;
 
 		has_als = driver_type_exists (data, DRIVER_TYPE_LIGHT);
-		g_variant_builder_add (&props_builder, "{sv}", "HasAmbientLight",
-				       g_variant_new_boolean (has_als));
+		g_variant_builder_add (&props_builder, "{sv}", "HasAmbientLight", g_variant_new_boolean (has_als));
 
 		/* Send the light level when the device appears */
 		if (has_als)
@@ -216,18 +190,15 @@ send_dbus_event (SensorData     *data,
 	}
 
 	if (mask & PROP_LIGHT_LEVEL) {
-		g_variant_builder_add (&props_builder, "{sv}", "LightLevelUnit",
-				       g_variant_new_string (data->uses_lux ? "lux" : "vendor"));
-		g_variant_builder_add (&props_builder, "{sv}", "LightLevel",
-				       g_variant_new_double (data->previous_level));
+		g_variant_builder_add (&props_builder, "{sv}", "LightLevelUnit", g_variant_new_string (data->uses_lux ? "lux" : "vendor"));
+		g_variant_builder_add (&props_builder, "{sv}", "LightLevel", g_variant_new_double (data->previous_level));
 	}
 
 	if (mask & PROP_HAS_COMPASS) {
 		gboolean has_compass;
 
 		has_compass = driver_type_exists (data, DRIVER_TYPE_COMPASS);
-		g_variant_builder_add (&props_builder, "{sv}", "HasCompass",
-				       g_variant_new_boolean (has_compass));
+		g_variant_builder_add (&props_builder, "{sv}", "HasCompass", g_variant_new_boolean (has_compass));
 
 		/* Send the heading when the device appears */
 		if (has_compass)
@@ -235,25 +206,15 @@ send_dbus_event (SensorData     *data,
 	}
 
 	if (mask & PROP_COMPASS_HEADING) {
-		g_variant_builder_add (&props_builder, "{sv}", "CompassHeading",
-				       g_variant_new_double (data->previous_heading));
+		g_variant_builder_add (&props_builder, "{sv}", "CompassHeading", g_variant_new_double (data->previous_heading));
 	}
 
-	props_changed = g_variant_new ("(s@a{sv}@as)", (mask & PROP_ALL) ? SENSOR_PROXY_IFACE_NAME : SENSOR_PROXY_COMPASS_IFACE_NAME,
-				       g_variant_builder_end (&props_builder),
-				       g_variant_new_strv (NULL, 0));
+	props_changed = g_variant_new ("(s@a{sv}@as)", (mask & PROP_ALL) ? SENSOR_PROXY_IFACE_NAME : SENSOR_PROXY_COMPASS_IFACE_NAME, g_variant_builder_end (&props_builder), g_variant_new_strv (NULL, 0));
 
-	g_dbus_connection_emit_signal (data->connection,
-				       NULL,
-				       (mask & PROP_ALL) ? SENSOR_PROXY_DBUS_PATH : SENSOR_PROXY_COMPASS_DBUS_PATH,
-				       "org.freedesktop.DBus.Properties",
-				       "PropertiesChanged",
-				       props_changed, NULL);
+	g_dbus_connection_emit_signal (data->connection, NULL, (mask & PROP_ALL) ? SENSOR_PROXY_DBUS_PATH : SENSOR_PROXY_COMPASS_DBUS_PATH, "org.freedesktop.DBus.Properties", "PropertiesChanged", props_changed, NULL);
 }
 
-static void
-send_driver_changed_dbus_event (SensorData   *data,
-				DriverType    driver_type)
+static void send_driver_changed_dbus_event (SensorData   *data, DriverType    driver_type)
 {
 	if (driver_type == DRIVER_TYPE_ACCEL)
 		send_dbus_event (data, PROP_HAS_ACCELEROMETER);
@@ -265,8 +226,7 @@ send_driver_changed_dbus_event (SensorData   *data,
 		g_assert_not_reached ();
 }
 
-static gboolean
-any_sensors_left (SensorData *data)
+static gboolean any_sensors_left (SensorData *data)
 {
 	guint i;
 	gboolean exists = FALSE;
@@ -281,10 +241,7 @@ any_sensors_left (SensorData *data)
 	return exists;
 }
 
-static void
-client_release (SensorData            *data,
-		const char            *sender,
-		DriverType             driver_type)
+static void client_release (SensorData *data, const char *sender, DriverType driver_type)
 {
 	GHashTable *ht;
 	guint watch_id;
@@ -297,15 +254,11 @@ client_release (SensorData            *data,
 
 	g_hash_table_remove (ht, sender);
 
-	if (driver_type_exists (data, driver_type) &&
-	    g_hash_table_size (ht) == 0)
+	if (driver_type_exists (data, driver_type) && g_hash_table_size (ht) == 0)
 		driver_set_polling (DRIVER_FOR_TYPE(driver_type), FALSE);
 }
 
-static void
-client_vanished_cb (GDBusConnection *connection,
-		    const gchar     *name,
-		    gpointer         user_data)
+static void client_vanished_cb (GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 	SensorData *data = user_data;
 	guint i;
@@ -331,21 +284,12 @@ client_vanished_cb (GDBusConnection *connection,
 	g_free (sender);
 }
 
-static void
-handle_generic_method_call (SensorData            *data,
-			    const gchar           *sender,
-			    const gchar           *object_path,
-			    const gchar           *interface_name,
-			    const gchar           *method_name,
-			    GVariant              *parameters,
-			    GDBusMethodInvocation *invocation,
-			    DriverType             driver_type)
+static void handle_generic_method_call (SensorData *data, const gchar *sender, const gchar *object_path, const gchar *interface_name, const gchar *method_name, GVariant *parameters, GDBusMethodInvocation *invocation, DriverType driver_type)
 {
 	GHashTable *ht;
 	guint watch_id;
 
-	g_debug ("Handling driver refcounting method '%s' for %s device",
-		 method_name, driver_type_to_str (driver_type));
+	g_debug ("Handling driver refcounting method '%s' for %s device", method_name, driver_type_to_str (driver_type));
 
 	ht = data->clients[driver_type];
 
@@ -357,17 +301,10 @@ handle_generic_method_call (SensorData            *data,
 		}
 
 		/* No other clients for this sensor? Start it */
-		if (driver_type_exists (data, driver_type) &&
-		    g_hash_table_size (ht) == 0)
+		if (driver_type_exists (data, driver_type) && g_hash_table_size (ht) == 0)
 			driver_set_polling (DRIVER_FOR_TYPE(driver_type), TRUE);
 
-		watch_id = g_bus_watch_name_on_connection (data->connection,
-							   sender,
-							   G_BUS_NAME_WATCHER_FLAGS_NONE,
-							   NULL,
-							   client_vanished_cb,
-							   data,
-							   NULL);
+		watch_id = g_bus_watch_name_on_connection (data->connection, sender, G_BUS_NAME_WATCHER_FLAGS_NONE, NULL, client_vanished_cb, data, NULL);
 		g_hash_table_insert (ht, g_strdup (sender), GUINT_TO_POINTER (watch_id));
 
 		g_dbus_method_invocation_return_value (invocation, NULL);
@@ -377,47 +314,24 @@ handle_generic_method_call (SensorData            *data,
 	}
 }
 
-static void
-handle_method_call (GDBusConnection       *connection,
-		    const gchar           *sender,
-		    const gchar           *object_path,
-		    const gchar           *interface_name,
-		    const gchar           *method_name,
-		    GVariant              *parameters,
-		    GDBusMethodInvocation *invocation,
-		    gpointer               user_data)
+static void handle_method_call (GDBusConnection *connection, const gchar *sender, const gchar *object_path, const gchar *interface_name, const gchar *method_name, GVariant *parameters, GDBusMethodInvocation *invocation, gpointer user_data)
 {
 	SensorData *data = user_data;
 	DriverType driver_type;
 
-	if (g_strcmp0 (method_name, "ClaimAccelerometer") == 0 ||
-	    g_strcmp0 (method_name, "ReleaseAccelerometer") == 0)
+	if (g_strcmp0 (method_name, "ClaimAccelerometer") == 0 || g_strcmp0 (method_name, "ReleaseAccelerometer") == 0)
 		driver_type = DRIVER_TYPE_ACCEL;
-	else if (g_strcmp0 (method_name, "ClaimLight") == 0 ||
-		 g_strcmp0 (method_name, "ReleaseLight") == 0)
+	else if (g_strcmp0 (method_name, "ClaimLight") == 0 || g_strcmp0 (method_name, "ReleaseLight") == 0)
 		driver_type = DRIVER_TYPE_LIGHT;
 	else {
-		g_dbus_method_invocation_return_error (invocation,
-						       G_DBUS_ERROR,
-						       G_DBUS_ERROR_UNKNOWN_METHOD,
-						       "Method '%s' does not exist on object %s",
-						       method_name, object_path);
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD, "Method '%s' does not exist on object %s", method_name, object_path);
 		return;
 	}
 
-	handle_generic_method_call (data, sender, object_path,
-				    interface_name, method_name,
-				    parameters, invocation, driver_type);
+	handle_generic_method_call (data, sender, object_path, interface_name, method_name, parameters, invocation, driver_type);
 }
 
-static GVariant *
-handle_get_property (GDBusConnection *connection,
-		     const gchar     *sender,
-		     const gchar     *object_path,
-		     const gchar     *interface_name,
-		     const gchar     *property_name,
-		     GError         **error,
-		     gpointer         user_data)
+static GVariant* handle_get_property (GDBusConnection *connection, const gchar *sender, const gchar *object_path, const gchar *interface_name, const gchar *property_name, GError **error, gpointer         user_data)
 {
 	SensorData *data = user_data;
 
@@ -444,41 +358,19 @@ static const GDBusInterfaceVTable interface_vtable =
 	NULL
 };
 
-static void
-handle_compass_method_call (GDBusConnection       *connection,
-			    const gchar           *sender,
-			    const gchar           *object_path,
-			    const gchar           *interface_name,
-			    const gchar           *method_name,
-			    GVariant              *parameters,
-			    GDBusMethodInvocation *invocation,
-			    gpointer               user_data)
+static void handle_compass_method_call (GDBusConnection *connection, const gchar *sender, const gchar *object_path, const gchar *interface_name, const gchar *method_name, GVariant *parameters, GDBusMethodInvocation *invocation, gpointer user_data)
 {
 	SensorData *data = user_data;
 
-	if (g_strcmp0 (method_name, "ClaimCompass") != 0 &&
-	    g_strcmp0 (method_name, "ReleaseCompass") != 0) {
-		g_dbus_method_invocation_return_error (invocation,
-						       G_DBUS_ERROR,
-						       G_DBUS_ERROR_UNKNOWN_METHOD,
-						       "Method '%s' does not exist on object %s",
-						       method_name, object_path);
+	if (g_strcmp0 (method_name, "ClaimCompass") != 0 && g_strcmp0 (method_name, "ReleaseCompass") != 0) {
+		g_dbus_method_invocation_return_error (invocation, G_DBUS_ERROR, G_DBUS_ERROR_UNKNOWN_METHOD, "Method '%s' does not exist on object %s", method_name, object_path);
 		return;
 	}
 
-	handle_generic_method_call (data, sender, object_path,
-				    interface_name, method_name,
-				    parameters, invocation, DRIVER_TYPE_COMPASS);
+	handle_generic_method_call (data, sender, object_path, interface_name, method_name, parameters, invocation, DRIVER_TYPE_COMPASS);
 }
 
-static GVariant *
-handle_compass_get_property (GDBusConnection *connection,
-			     const gchar     *sender,
-			     const gchar     *object_path,
-			     const gchar     *interface_name,
-			     const gchar     *property_name,
-			     GError         **error,
-			     gpointer         user_data)
+static GVariant * handle_compass_get_property (GDBusConnection *connection, const gchar *sender, const gchar *object_path, const gchar *interface_name, const gchar *property_name, GError **error, gpointer user_data)
 {
 	SensorData *data = user_data;
 
@@ -499,45 +391,24 @@ static const GDBusInterfaceVTable compass_interface_vtable =
 	NULL
 };
 
-static void
-name_lost_handler (GDBusConnection *connection,
-		   const gchar     *name,
-		   gpointer         user_data)
+static void name_lost_handler (GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 	g_debug ("iio-sensor-proxy is already running, or it cannot own its D-Bus name. Verify installation.");
 	exit (0);
 }
 
-static void
-bus_acquired_handler (GDBusConnection *connection,
-		      const gchar     *name,
-		      gpointer         user_data)
+static void bus_acquired_handler (GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 	SensorData *data = user_data;
 
-	g_dbus_connection_register_object (connection,
-					   SENSOR_PROXY_DBUS_PATH,
-					   data->introspection_data->interfaces[0],
-					   &interface_vtable,
-					   data,
-					   NULL,
-					   NULL);
+	g_dbus_connection_register_object (connection, SENSOR_PROXY_DBUS_PATH, data->introspection_data->interfaces[0], &interface_vtable, data, NULL, NULL);
 
-	g_dbus_connection_register_object (connection,
-					   SENSOR_PROXY_COMPASS_DBUS_PATH,
-					   data->introspection_data->interfaces[1],
-					   &compass_interface_vtable,
-					   data,
-					   NULL,
-					   NULL);
+	g_dbus_connection_register_object (connection, SENSOR_PROXY_COMPASS_DBUS_PATH, data->introspection_data->interfaces[1], &compass_interface_vtable, data, NULL, NULL);
 
 	data->connection = g_object_ref (connection);
 }
 
-static void
-name_acquired_handler (GDBusConnection *connection,
-		       const gchar     *name,
-		       gpointer         user_data)
+static void name_acquired_handler (GDBusConnection *connection, const gchar *name, gpointer user_data)
 {
 	SensorData *data = user_data;
 	const gchar * const subsystems[] = { "iio", "input", "platform", NULL };
@@ -547,8 +418,7 @@ name_acquired_handler (GDBusConnection *connection,
 	if (!find_sensors (data->client, data))
 		goto bail;
 
-	g_signal_connect (G_OBJECT (data->client), "uevent",
-			  G_CALLBACK (sensor_changes), data);
+	g_signal_connect (G_OBJECT (data->client), "uevent", G_CALLBACK (sensor_changes), data);
 
 	for (i = 0; i < NUM_SENSOR_TYPES; i++) {
 		data->clients[i] = create_clients_hash_table ();
@@ -556,8 +426,7 @@ name_acquired_handler (GDBusConnection *connection,
 		if (!driver_type_exists (data, i))
 			continue;
 
-		if (!driver_open (DRIVER_FOR_TYPE(i), DEVICE_FOR_TYPE(i),
-				  driver_type_to_callback_func (data->drivers[i]->type), data)) {
+		if (!driver_open (DRIVER_FOR_TYPE(i), DEVICE_FOR_TYPE(i), driver_type_to_callback_func (data->drivers[i]->type), data)) {
 			DRIVER_FOR_TYPE(i) = NULL;
 			g_clear_object (&DEVICE_FOR_TYPE(i));
 		}
@@ -576,44 +445,31 @@ bail:
 	g_main_loop_quit (data->loop);
 }
 
-static gboolean
-setup_dbus (SensorData *data)
+static gboolean setup_dbus (SensorData *data)
 {
 	GBytes *bytes;
 
-	bytes = g_resources_lookup_data ("/net/hadess/SensorProxy/net.hadess.SensorProxy.xml",
-					 G_RESOURCE_LOOKUP_FLAGS_NONE,
-					 NULL);
+	bytes = g_resources_lookup_data ("/net/hadess/SensorProxy/net.hadess.SensorProxy.xml", G_RESOURCE_LOOKUP_FLAGS_NONE, NULL);
 	data->introspection_data = g_dbus_node_info_new_for_xml (g_bytes_get_data (bytes, NULL), NULL);
 	g_bytes_unref (bytes);
 	g_assert (data->introspection_data != NULL);
 
-	data->name_id = g_bus_own_name (G_BUS_TYPE_SYSTEM,
-					SENSOR_PROXY_DBUS_NAME,
-					G_BUS_NAME_OWNER_FLAGS_NONE,
-					bus_acquired_handler,
-					name_acquired_handler,
-					name_lost_handler,
-					data,
-					NULL);
+	data->name_id = g_bus_own_name (G_BUS_TYPE_SYSTEM, SENSOR_PROXY_DBUS_NAME, G_BUS_NAME_OWNER_FLAGS_NONE, bus_acquired_handler, name_acquired_handler, name_lost_handler, data, NULL);
 
 	return TRUE;
 }
 
-static void
-accel_changed_func (SensorDriver *driver,
-		    gpointer      readings_data,
-		    gpointer      user_data)
+static void accel_changed_func (SensorDriver *driver, gpointer readings_data, gpointer user_data)
 {
 	SensorData *data = user_data;
 	AccelReadings *readings = (AccelReadings *) readings_data;
 	OrientationUp orientation = data->previous_orientation;
 
 	//FIXME handle errors
-	g_debug ("Accel sent by driver (quirk applied): %d, %d, %d (scale: %lf)",
-		 readings->accel_x, readings->accel_y, readings->accel_z, readings->scale);
+	g_debug ("Accel sent by driver (quirk applied): %d, %d, %d (scale: %lf)", readings->accel_x, readings->accel_y, readings->accel_z, readings->scale);
 
 	orientation = orientation_calc (data->previous_orientation, readings->accel_x, readings->accel_y, readings->accel_z, readings->scale);
+	g_debug ("orientation: %d\n", orientation); // typedef enum { ORIENTATION_UNDEFINED, ORIENTATION_NORMAL, ORIENTATION_BOTTOM_UP, ORIENTATION_LEFT_UP, ORIENTATION_RIGHT_UP } OrientationUp;
 
 	if (data->previous_orientation != orientation) {
 		OrientationUp tmp;
@@ -621,26 +477,19 @@ accel_changed_func (SensorDriver *driver,
 		tmp = data->previous_orientation;
 		data->previous_orientation = orientation;
 		send_dbus_event (data, PROP_ACCELEROMETER_ORIENTATION);
-		g_debug ("Emitted orientation changed: from %s to %s",
-			 orientation_to_string (tmp),
-			 orientation_to_string (data->previous_orientation));
+		g_debug ("Emitted orientation changed: from %s to %s", orientation_to_string (tmp), orientation_to_string (data->previous_orientation));
 	}
 }
 
-static void
-light_changed_func (SensorDriver *driver,
-		    gpointer      readings_data,
-		    gpointer      user_data)
+static void light_changed_func (SensorDriver *driver, gpointer readings_data, gpointer user_data)
 {
 	SensorData *data = user_data;
 	LightReadings *readings = (LightReadings *) readings_data;
 
 	//FIXME handle errors
-	g_debug ("Light level sent by driver (quirk applied): %lf (unit: %s)",
-		 readings->level, data->uses_lux ? "lux" : "vendor");
+	g_debug ("Light level sent by driver (quirk applied): %lf (unit: %s)", readings->level, data->uses_lux ? "lux" : "vendor");
 
-	if (data->previous_level != readings->level ||
-	    data->uses_lux != readings->uses_lux) {
+	if (data->previous_level != readings->level || data->uses_lux != readings->uses_lux) {
 		gdouble tmp;
 
 		tmp = data->previous_level;
@@ -649,22 +498,17 @@ light_changed_func (SensorDriver *driver,
 		data->uses_lux = readings->uses_lux;
 
 		send_dbus_event (data, PROP_LIGHT_LEVEL);
-		g_debug ("Emitted light changed: from %lf to %lf",
-			 tmp, data->previous_level);
+		g_debug ("Emitted light changed: from %lf to %lf", tmp, data->previous_level);
 	}
 }
 
-static void
-compass_changed_func (SensorDriver *driver,
-                      gpointer      readings_data,
-                      gpointer      user_data)
+static void compass_changed_func (SensorDriver *driver, gpointer readings_data, gpointer user_data)
 {
 	SensorData *data = user_data;
 	CompassReadings *readings = (CompassReadings *) readings_data;
 
 	//FIXME handle errors
-	g_debug ("Heading sent by driver (quirk applied): %lf degrees",
-	         readings->heading);
+	g_debug ("Heading sent by driver (quirk applied): %lf degrees", readings->heading);
 
 	if (data->previous_heading != readings->heading) {
 		gdouble tmp;
@@ -673,13 +517,11 @@ compass_changed_func (SensorDriver *driver,
 		data->previous_heading = readings->heading;
 
 		send_dbus_event (data, PROP_COMPASS_HEADING);
-		g_debug ("Emitted heading changed: from %lf to %lf",
-			 tmp, data->previous_heading);
+		g_debug ("Emitted heading changed: from %lf to %lf", tmp, data->previous_heading);
 	}
 }
 
-static ReadingsUpdateFunc
-driver_type_to_callback_func (DriverType type)
+static ReadingsUpdateFunc driver_type_to_callback_func (DriverType type)
 {
 	switch (type) {
 	case DRIVER_TYPE_ACCEL:
@@ -693,8 +535,7 @@ driver_type_to_callback_func (DriverType type)
 	}
 }
 
-static void
-free_sensor_data (SensorData *data)
+static void free_sensor_data (SensorData *data)
 {
 	guint i;
 
@@ -720,16 +561,11 @@ free_sensor_data (SensorData *data)
 	g_free (data);
 }
 
-static void
-sensor_changes (GUdevClient *client,
-		gchar       *action,
-		GUdevDevice *device,
-		SensorData  *data)
+static void sensor_changes (GUdevClient *client, gchar *action, GUdevDevice *device, SensorData *data)
 {
 	guint i;
 
-	g_debug ("Sensor changes: action = %s, device = %s",
-		 action, g_udev_device_get_sysfs_path (device));
+	g_debug ("Sensor changes: action = %s, device = %s", action, g_udev_device_get_sysfs_path (device));
 
 	if (g_strcmp0 (action, "remove") == 0) {
 		for (i = 0; i < NUM_SENSOR_TYPES; i++) {
@@ -739,9 +575,7 @@ sensor_changes (GUdevClient *client,
 				continue;
 
 			if (g_strcmp0 (g_udev_device_get_sysfs_path (device), g_udev_device_get_sysfs_path (dev)) == 0) {
-				g_debug ("Sensor type %s got removed (%s)",
-					 driver_type_to_str (i),
-					 g_udev_device_get_sysfs_path (dev));
+				g_debug ("Sensor type %s got removed (%s)", driver_type_to_str (i), g_udev_device_get_sysfs_path (dev));
 
 				g_clear_object (&DEVICE_FOR_TYPE(i));
 				DRIVER_FOR_TYPE(i) = NULL;
@@ -758,15 +592,10 @@ sensor_changes (GUdevClient *client,
 	} else if (g_strcmp0 (action, "add") == 0) {
 		for (i = 0; i < G_N_ELEMENTS(drivers); i++) {
 			SensorDriver *driver = (SensorDriver *) drivers[i];
-			if (!driver_type_exists (data, driver->type) &&
-			    driver_discover (driver, device)) {
-				g_debug ("Found hotplugged device %s of type %s at %s",
-					 g_udev_device_get_sysfs_path (device),
-					 driver_type_to_str (driver->type),
-					 driver->name);
+			if (!driver_type_exists (data, driver->type) && driver_discover (driver, device)) {
+				g_debug ("Found hotplugged device %s of type %s at %s", g_udev_device_get_sysfs_path (device), driver_type_to_str (driver->type), driver->name);
 
-				if (driver_open (driver, device,
-						 driver_type_to_callback_func (driver->type), data)) {
+				if (driver_open (driver, device, driver_type_to_callback_func (driver->type), data)) {
 					GHashTable *ht;
 
 					DEVICE_FOR_TYPE(driver->type) = g_object_ref (device);

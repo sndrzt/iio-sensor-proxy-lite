@@ -35,9 +35,7 @@ static DrvData *drv_data = NULL;
 static void input_accel_set_polling (gboolean state);
 
 /* From src/linux/up-device-supply.c in UPower */
-static GUdevDevice *
-get_sibling_with_subsystem (GUdevDevice *device,
-			    const char *subsystem)
+static GUdevDevice* get_sibling_with_subsystem (GUdevDevice *device, const char *subsystem)
 {
 	GUdevDevice *parent;
 	GUdevClient *client;
@@ -80,8 +78,7 @@ get_sibling_with_subsystem (GUdevDevice *device,
 	return sibling;
 }
 
-static gboolean
-is_part_of_joypad (GUdevDevice *device)
+static gboolean is_part_of_joypad (GUdevDevice *device)
 {
 	g_autoptr(GUdevDevice) sibling;
 
@@ -91,8 +88,7 @@ is_part_of_joypad (GUdevDevice *device)
 	return g_udev_device_get_property_as_boolean (sibling, "ID_INPUT_JOYSTICK");
 }
 
-static gboolean
-input_accel_discover (GUdevDevice *device)
+static gboolean input_accel_discover (GUdevDevice *device)
 {
 	const char *path;
 	g_autoptr(GUdevDevice) parent = NULL;
@@ -117,8 +113,7 @@ input_accel_discover (GUdevDevice *device)
 #define READ_AXIS(axis, var) { memzero(&abs_info, sizeof(abs_info)); r = ioctl(fd, EVIOCGABS(axis), &abs_info); if (r < 0) return; var = abs_info.value; }
 #define memzero(x,l) (memset((x), 0, (l)))
 
-static void
-accelerometer_changed (void)
+static void accelerometer_changed (void)
 {
 	struct input_absinfo abs_info;
 	int accel_x = 0, accel_y = 0, accel_z = 0;
@@ -158,11 +153,7 @@ accelerometer_changed (void)
 	drv_data->callback_func (&input_accel, (gpointer) &readings, drv_data->user_data);
 }
 
-static void
-uevent_received (GUdevClient *client,
-		 gchar       *action,
-		 GUdevDevice *device,
-		 gpointer     user_data)
+static void uevent_received (GUdevClient *client, gchar *action, GUdevDevice *device, gpointer user_data)
 {
 	if (g_strcmp0 (action, "change") != 0)
 		return;
@@ -179,17 +170,13 @@ uevent_received (GUdevClient *client,
 	accelerometer_changed ();
 }
 
-static gboolean
-first_values (gpointer user_data)
+static gboolean first_values (gpointer user_data)
 {
 	accelerometer_changed ();
 	return G_SOURCE_REMOVE;
 }
 
-static gboolean
-input_accel_open (GUdevDevice        *device,
-		  ReadingsUpdateFunc  callback_func,
-		  gpointer            user_data)
+static gboolean input_accel_open (GUdevDevice *device, ReadingsUpdateFunc callback_func, gpointer user_data)
 {
 	const gchar * const subsystems[] = { "input", NULL };
 	const char *mount_matrix;
@@ -205,31 +192,27 @@ input_accel_open (GUdevDevice        *device,
 
 	mount_matrix = g_udev_device_get_property (device, "ACCEL_MOUNT_MATRIX");
 	if (!parse_mount_matrix (mount_matrix, &drv_data->mount_matrix)) {
-		g_warning ("Invalid mount-matrix ('%s'), falling back to identity",
-			   mount_matrix);
+		g_warning ("Invalid mount-matrix ('%s'), falling back to identity", mount_matrix);
 		parse_mount_matrix (NULL, &drv_data->mount_matrix);
 	}
 
 	drv_data->callback_func = callback_func;
 	drv_data->user_data = user_data;
 
-	g_signal_connect (drv_data->client, "uevent",
-			  G_CALLBACK (uevent_received), NULL);
+	g_signal_connect (drv_data->client, "uevent", G_CALLBACK (uevent_received), NULL);
 
 	g_idle_add (first_values, NULL);
 
 	return TRUE;
 }
 
-static gboolean
-read_accel_poll (gpointer user_data)
+static gboolean read_accel_poll (gpointer user_data)
 {
 	accelerometer_changed ();
 	return G_SOURCE_CONTINUE;
 }
 
-static void
-input_accel_set_polling (gboolean state)
+static void input_accel_set_polling (gboolean state)
 {
 	if (drv_data->timeout_id > 0 && state)
 		return;
@@ -247,8 +230,7 @@ input_accel_set_polling (gboolean state)
 	}
 }
 
-static void
-input_accel_close (void)
+static void input_accel_close (void)
 {
 	input_accel_set_polling (FALSE);
 	g_clear_object (&drv_data->client);

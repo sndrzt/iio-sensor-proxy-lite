@@ -30,8 +30,7 @@ typedef struct {
 
 static DrvData *drv_data = NULL;
 
-static int
-process_scan (IIOSensorData data, DrvData *or_data)
+static int process_scan (IIOSensorData data, DrvData *or_data)
 {
 	int i;
 	int accel_x, accel_y, accel_z;
@@ -50,8 +49,7 @@ process_scan (IIOSensorData data, DrvData *or_data)
 	 * Just read the last one */
 	i = (data.read_size / or_data->buffer_data->scan_size) - 1;
 	if (i < 0) {
-		g_debug ("Not enough data to read from '%s' (read_size: %d scan_size: %d)", or_data->name,
-			 (int) data.read_size, or_data->buffer_data->scan_size);
+		g_debug ("Not enough data to read from '%s' (read_size: %d scan_size: %d)", or_data->name, (int) data.read_size, or_data->buffer_data->scan_size);
 		return 0;
 	}
 
@@ -78,10 +76,7 @@ process_scan (IIOSensorData data, DrvData *or_data)
 	return 1;
 }
 
-static void
-prepare_output (DrvData    *or_data,
-		const char *dev_dir_name,
-		const char *trigger_name)
+static void prepare_output (DrvData *or_data, const char *dev_dir_name, const char *trigger_name)
 {
 	IIOSensorData data;
 
@@ -110,8 +105,7 @@ bail:
 	g_free(data.data);
 }
 
-static char *
-get_trigger_name (GUdevDevice *device)
+static char* get_trigger_name (GUdevDevice *device)
 {
 	GList *devices, *l;
 	GUdevClient *client;
@@ -140,15 +134,13 @@ get_trigger_name (GUdevDevice *device)
 	if (has_trigger)
 		return trigger_name;
 
-	g_warning ("Could not find trigger name associated with %s",
-		   g_udev_device_get_sysfs_path (device));
+	g_warning ("Could not find trigger name associated with %s", g_udev_device_get_sysfs_path (device));
 	g_free (trigger_name);
 	return NULL;
 }
 
 
-static gboolean
-read_orientation (gpointer user_data)
+static gboolean read_orientation (gpointer user_data)
 {
 	DrvData *data = user_data;
 
@@ -157,8 +149,7 @@ read_orientation (gpointer user_data)
 	return G_SOURCE_CONTINUE;
 }
 
-static gboolean
-iio_buffer_accel_discover (GUdevDevice *device)
+static gboolean iio_buffer_accel_discover (GUdevDevice *device)
 {
 	char *trigger_name;
 
@@ -175,8 +166,7 @@ iio_buffer_accel_discover (GUdevDevice *device)
 	return TRUE;
 }
 
-static void
-iio_buffer_accel_set_polling (gboolean state)
+static void iio_buffer_accel_set_polling (gboolean state)
 {
 	if (drv_data->timeout_id > 0 && state)
 		return;
@@ -194,10 +184,7 @@ iio_buffer_accel_set_polling (gboolean state)
 	}
 }
 
-static gboolean
-iio_buffer_accel_open (GUdevDevice        *device,
-		       ReadingsUpdateFunc  callback_func,
-		       gpointer            user_data)
+static gboolean iio_buffer_accel_open (GUdevDevice *device, ReadingsUpdateFunc callback_func, gpointer user_data)
 {
 	char *trigger_name;
 	const char *mount_matrix;
@@ -220,8 +207,7 @@ iio_buffer_accel_open (GUdevDevice        *device,
 
 	mount_matrix = g_udev_device_get_property (device, "ACCEL_MOUNT_MATRIX");
 	if (!parse_mount_matrix (mount_matrix, &drv_data->mount_matrix)) {
-		g_warning ("Invalid mount-matrix ('%s'), falling back to identity",
-			   mount_matrix);
+		g_warning ("Invalid mount-matrix ('%s'), falling back to identity", mount_matrix);
 		parse_mount_matrix (NULL, &drv_data->mount_matrix);
 	}
 
@@ -237,8 +223,7 @@ iio_buffer_accel_open (GUdevDevice        *device,
 	return TRUE;
 }
 
-static void
-iio_buffer_accel_close (void)
+static void iio_buffer_accel_close (void)
 {
 	iio_buffer_accel_set_polling (FALSE);
 	g_clear_pointer (&drv_data->buffer_data, buffer_drv_data_free);

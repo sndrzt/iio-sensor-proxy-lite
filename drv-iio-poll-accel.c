@@ -29,9 +29,7 @@ typedef struct DrvData {
 
 static DrvData *drv_data = NULL;
 
-static int
-sysfs_get_int (GUdevDevice *dev,
-	       const char  *attribute)
+static int sysfs_get_int (GUdevDevice *dev, const char  *attribute)
 {
 	int result;
 	char *contents;
@@ -48,8 +46,7 @@ sysfs_get_int (GUdevDevice *dev,
 	return result;
 }
 
-static gboolean
-poll_orientation (gpointer user_data)
+static gboolean poll_orientation (gpointer user_data)
 {
 	DrvData *data = user_data;
 	int accel_x, accel_y, accel_z;
@@ -61,8 +58,7 @@ poll_orientation (gpointer user_data)
 	accel_z = sysfs_get_int (data->dev, "in_accel_z_raw");
 	readings.scale = data->scale;
 
-	g_debug ("Accel read from IIO on '%s': %d, %d, %d (scale %lf)", data->name,
-		 accel_x, accel_y, accel_z, readings.scale);
+	g_debug ("Accel read from IIO on '%s': %d, %d, %d (scale %lf)", data->name, accel_x, accel_y, accel_z, readings.scale);
 
 	tmp.x = accel_x;
 	tmp.y = accel_y;
@@ -93,8 +89,7 @@ iio_poll_accel_discover (GUdevDevice *device)
 	return TRUE;
 }
 
-static void
-iio_poll_accel_set_polling (gboolean state)
+static void iio_poll_accel_set_polling (gboolean state)
 {
 	if (drv_data->timeout_id > 0 && state)
 		return;
@@ -112,10 +107,7 @@ iio_poll_accel_set_polling (gboolean state)
 	}
 }
 
-static gboolean
-iio_poll_accel_open (GUdevDevice        *device,
-		     ReadingsUpdateFunc  callback_func,
-		     gpointer            user_data)
+static gboolean iio_poll_accel_open (GUdevDevice *device, ReadingsUpdateFunc callback_func, gpointer user_data)
 {
 	const char *mount_matrix;
 
@@ -139,8 +131,7 @@ iio_poll_accel_open (GUdevDevice        *device,
 	return TRUE;
 }
 
-static void
-iio_poll_accel_close (void)
+static void iio_poll_accel_close (void)
 {
 	iio_poll_accel_set_polling (FALSE);
 	g_clear_object (&drv_data->dev);

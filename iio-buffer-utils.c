@@ -47,18 +47,11 @@ struct iio_channel_info {
 #define _IIO_GETU(__data, __idx, __size, __shift) \
     (((guint##__size) (((const guint8 *) (__data))[__idx])) << (__shift))
 
-#define _IIO_READ_UINT32_BE(data)       (_IIO_GETU (data, 0, 32, 24) | \
-                                         _IIO_GETU (data, 1, 32, 16) | \
-                                         _IIO_GETU (data, 2, 32,  8) | \
-                                         _IIO_GETU (data, 3, 32,  0))
+#define _IIO_READ_UINT32_BE(data)       (_IIO_GETU (data, 0, 32, 24) | _IIO_GETU (data, 1, 32, 16) | _IIO_GETU (data, 2, 32,  8) | _IIO_GETU (data, 3, 32,  0))
 
-#define _IIO_READ_UINT32_LE(data)       (_IIO_GETU (data, 3, 32, 24) | \
-                                         _IIO_GETU (data, 2, 32, 16) | \
-                                         _IIO_GETU (data, 1, 32,  8) | \
-                                         _IIO_GETU (data, 0, 32,  0))
+#define _IIO_READ_UINT32_LE(data)       (_IIO_GETU (data, 3, 32, 24) | _IIO_GETU (data, 2, 32, 16) | _IIO_GETU (data, 1, 32,  8) | _IIO_GETU (data, 0, 32,  0))
 
-static inline guint32
-iio_readu32 (struct iio_channel_info *info, const guint8 * data)
+static inline guint32 iio_readu32 (struct iio_channel_info *info, const guint8 * data)
 {
 	if (info->be)
 		return _IIO_READ_UINT32_BE (data + info->location);
@@ -68,26 +61,18 @@ iio_readu32 (struct iio_channel_info *info, const guint8 * data)
 #define _IIO_GET(__data, __idx, __size, __shift) \
     (((guint##__size) (((const guint8 *) (__data))[__idx])) << (__shift))
 
-#define _IIO_READ_INT32_BE(data)       (_IIO_GET (data, 0, 32, 24) | \
-                                        _IIO_GET (data, 1, 32, 16) | \
-                                        _IIO_GET (data, 2, 32,  8) | \
-                                        _IIO_GET (data, 3, 32,  0))
+#define _IIO_READ_INT32_BE(data)       (_IIO_GET (data, 0, 32, 24) | _IIO_GET (data, 1, 32, 16) | _IIO_GET (data, 2, 32,  8) | _IIO_GET (data, 3, 32,  0))
 
-#define _IIO_READ_INT32_LE(data)       (_IIO_GET (data, 3, 32, 24) | \
-                                        _IIO_GET (data, 2, 32, 16) | \
-                                        _IIO_GET (data, 1, 32,  8) | \
-                                        _IIO_GET (data, 0, 32,  0))
+#define _IIO_READ_INT32_LE(data)       (_IIO_GET (data, 3, 32, 24) | _IIO_GET (data, 2, 32, 16) | _IIO_GET (data, 1, 32,  8) | _IIO_GET (data, 0, 32,  0))
 
-static inline gint32
-iio_read32 (struct iio_channel_info *info, const gint8 * data)
+static inline gint32 iio_read32 (struct iio_channel_info *info, const gint8 * data)
 {
 	if (info->be)
 		return _IIO_READ_INT32_BE (data + info->location);
 	return _IIO_READ_INT32_LE(data + info->location);
 }
 
-static char *
-iioutils_break_up_name (const char *name)
+static char* iioutils_break_up_name (const char *name)
 {
 	char **items, *ret;
 	guint i;
@@ -115,16 +100,7 @@ iioutils_break_up_name (const char *name)
  * @device_dir: the iio device directory
  * @name: the channel name
  **/
-static gboolean
-iioutils_get_type (unsigned   *is_signed,
-		   unsigned   *bytes,
-		   unsigned   *bits_used,
-		   unsigned   *shift,
-		   guint64    *mask,
-		   unsigned   *be,
-		   const char *device_dir,
-		   const char *name,
-		   const char *generic_name)
+static gboolean iioutils_get_type (unsigned *is_signed, unsigned *bytes, unsigned *bits_used, unsigned *shift, guint64 *mask, unsigned *be, const char *device_dir, const char *name, const char *generic_name)
 {
 	int ret;
 	char *builtname;
@@ -150,12 +126,7 @@ iioutils_get_type (unsigned   *is_signed,
 		}
 	}
 
-	ret = fscanf (sysfsfp,
-		      "%ce:%c%u/%u>>%u",
-		      &endianchar,
-		      &signchar,
-		      bits_used,
-		      &padint, shift);
+	ret = fscanf (sysfsfp, "%ce:%c%u/%u>>%u", &endianchar, &signchar, bits_used, &padint, shift);
 
 	if (ret < 0) {
 		g_warning ("Failed to pass scan type description for %s", filename);
@@ -176,20 +147,14 @@ iioutils_get_type (unsigned   *is_signed,
 	else
 		*is_signed = 0;
 
-	g_debug ("Got type for %s: is signed: %d, bytes: %d, bits_used: %d, shift: %d, mask: 0x%" G_GUINT64_FORMAT ", be: %d",
-		 name, *is_signed, *bytes, *bits_used, *shift, *mask, *be);
+	g_debug ("Got type for %s: is signed: %d, bytes: %d, bits_used: %d, shift: %d, mask: 0x%" G_GUINT64_FORMAT ", be: %d", name, *is_signed, *bytes, *bits_used, *shift, *mask, *be);
 
 	g_free (filename);
 
 	return TRUE;
 }
 
-static int
-iioutils_get_param_float (float      *output,
-			  const char *param_name,
-			  const char *device_dir,
-			  const char *name,
-			  const char *generic_name)
+static int iioutils_get_param_float (float *output, const char *param_name, const char *device_dir, const char *name, const char *generic_name)
 {
 	FILE *sysfsfp;
 	char *builtname, *filename;
@@ -228,16 +193,14 @@ iioutils_get_param_float (float      *output,
 	return ret;
 }
 
-static void
-channel_info_free (iio_channel_info *ci)
+static void channel_info_free (iio_channel_info *ci)
 {
 	g_free (ci->name);
 	g_free (ci->generic_name);
 	g_free (ci);
 }
 
-static int
-compare_channel_index (gconstpointer a, gconstpointer b)
+static int compare_channel_index (gconstpointer a, gconstpointer b)
 {
 	const iio_channel_info *info_1 = *(iio_channel_info **) a;
 	const iio_channel_info *info_2 = *(iio_channel_info **) b;
@@ -246,9 +209,7 @@ compare_channel_index (gconstpointer a, gconstpointer b)
 }
 
 /* build_channel_array() - function to figure out what channels are present */
-static iio_channel_info **
-build_channel_array (const char        *device_dir,
-		     int               *counter)
+static iio_channel_info ** build_channel_array (const char *device_dir, int *counter)
 {
 	GDir *dp;
 	FILE *sysfsfp;
@@ -313,35 +274,18 @@ build_channel_array (const char        *device_dir,
 			g_free (filename);
 
 			/* Find the scale */
-			ret = iioutils_get_param_float (&current->scale,
-							"scale",
-							device_dir,
-							current->name,
-							current->generic_name);
+			ret = iioutils_get_param_float (&current->scale, "scale", device_dir, current->name, current->generic_name);
 			if ((ret < 0) && (ret != -ENOENT))
 				goto error;
 
-			ret = iioutils_get_param_float (&current->offset,
-							"offset",
-							device_dir,
-							current->name,
-							current->generic_name);
+			ret = iioutils_get_param_float (&current->offset, "offset", device_dir, current->name, current->generic_name);
 			if ((ret < 0) && (ret != -ENOENT))
 				goto error;
 
-			ret = iioutils_get_type (&current->is_signed,
-						 &current->bytes,
-						 &current->bits_used,
-						 &current->shift,
-						 &current->mask,
-						 &current->be,
-						 device_dir,
-						 current->name,
-						 current->generic_name);
+			ret = iioutils_get_type (&current->is_signed, &current->bytes, &current->bits_used, &current->shift, &current->mask, &current->be, device_dir, current->name, current->generic_name);
 
 			if (!ret) {
-				g_warning ("Could not parse name %s, generic name %s",
-					   current->name, current->generic_name);
+				g_warning ("Could not parse name %s, generic name %s", current->name, current->generic_name);
 			} else {
 				g_ptr_array_add (array, current);
 			}
@@ -358,8 +302,7 @@ build_channel_array (const char        *device_dir,
 	for (i = 0; i < *counter; i++) {
 		iio_channel_info *ci = ret_array[i];
 
-		g_debug ("Built channel array for %s: index: %d, is signed: %d, bytes: %d, bits_used: %d, shift: %d, mask: 0x%" G_GUINT64_FORMAT ", be: %d",
-			 ci->name, ci->index, ci->is_signed, ci->bytes, ci->bits_used, ci->shift, ci->mask, ci->be);
+		g_debug ("Built channel array for %s: index: %d, is signed: %d, bytes: %d, bits_used: %d, shift: %d, mask: 0x%" G_GUINT64_FORMAT ", be: %d", ci->name, ci->index, ci->is_signed, ci->bytes, ci->bits_used, ci->shift, ci->mask, ci->be);
 	}
 
 	return ret_array;
@@ -371,13 +314,7 @@ error:
 	return NULL;
 }
 
-static int
-_write_sysfs_int (const char *filename,
-		  const char *basedir,
-		  int         val,
-		  int         verify,
-		  int         type,
-		  int         val2)
+static int _write_sysfs_int (const char *filename, const char *basedir, int val, int verify, int type, int val2)
 {
 	int ret = 0;
 	FILE *sysfsfp;
@@ -405,8 +342,7 @@ _write_sysfs_int (const char *filename,
 		}
 		fscanf(sysfsfp, "%d", &test);
 		if (test != val) {
-			g_warning ("Possible failure in int write %d to %s",
-				   val, temp);
+			g_warning ("Possible failure in int write %d to %s", val, temp);
 			ret = -1;
 		}
 		fclose(sysfsfp);
@@ -424,11 +360,7 @@ static int write_sysfs_int_and_verify(const char *filename, const char *basedir,
 	return _write_sysfs_int(filename, basedir, val, 1, 0, 0);
 }
 
-static int
-_write_sysfs_string (const char *filename,
-		     const char *basedir,
-		     const char *val,
-		     int         verify)
+static int _write_sysfs_string (const char *filename, const char *basedir, const char *val, int verify)
 {
 	int ret = 0;
 	FILE *sysfsfp;
@@ -453,8 +385,7 @@ _write_sysfs_string (const char *filename,
 	}
 	fscanf(sysfsfp, "%s", temp);
 	if (strcmp(temp, val) != 0) {
-		g_warning ("Possible failure in string write of %s Should be %s written to %s\\%s\n",
-			   temp, val, basedir, filename);
+		g_warning ("Possible failure in string write of %s Should be %s written to %s\\%s\n", temp, val, basedir, filename);
 		ret = -1;
 	}
 	fclose(sysfsfp);
@@ -488,9 +419,7 @@ static int write_sysfs_string(const char *filename, const char *basedir, const c
  * Has the side effect of filling the channels[i].location values used
  * in processing the buffer output.
  **/
-static int
-size_from_channelarray (iio_channel_info **channels,
-			int                num_channels)
+static int size_from_channelarray (iio_channel_info **channels, int num_channels)
 {
 	int bytes = 0;
 	int i = 0;
@@ -498,8 +427,7 @@ size_from_channelarray (iio_channel_info **channels,
 		if (bytes % channels[i]->bytes == 0)
 			channels[i]->location = bytes;
 		else
-			channels[i]->location = bytes - bytes % channels[i]->bytes
-				+ channels[i]->bytes;
+			channels[i]->location = bytes - bytes % channels[i]->bytes + channels[i]->bytes;
 		bytes = channels[i]->location + channels[i]->bytes;
 		i++;
 	}
@@ -515,21 +443,14 @@ size_from_channelarray (iio_channel_info **channels,
  * ch_scale:		scale for the channel
  * ch_present:		whether the channel is present
  **/
-void
-process_scan_1 (char              *data,
-		BufferDrvData        *buffer_data,
-		const char        *ch_name,
-		int               *ch_val,
-		gdouble           *ch_scale,
-		gboolean          *ch_present)
+void process_scan_1 (char *data, BufferDrvData *buffer_data, const char *ch_name, int *ch_val, gdouble *ch_scale, gboolean *ch_present)
 {
 	int k;
 	for (k = 0; k < buffer_data->channels_count; k++) {
 		if (strcmp (buffer_data->channels[k]->name, ch_name) != 0)
 			continue;
 
-		g_debug ("process_scan_1: channel_index: %d, chan_name: %s, channel_data_index: %d location: %d",
-			 k, buffer_data->channels[k]->name, buffer_data->channels[k]->index, buffer_data->channels[k]->location);
+		g_debug ("process_scan_1: channel_index: %d, chan_name: %s, channel_data_index: %d location: %d", k, buffer_data->channels[k]->name, buffer_data->channels[k]->index, buffer_data->channels[k]->location);
 
 		switch (buffer_data->channels[k]->bytes) {
 			/* only a few cases implemented so far */
@@ -573,9 +494,7 @@ process_scan_1 (char              *data,
  * @device_dir: the IIO device directory in sysfs
  * @
  **/
-static gboolean
-enable_sensors (GUdevDevice *dev,
-                int          enable)
+static gboolean enable_sensors (GUdevDevice *dev, int enable)
 {
 	GDir *dir;
 	char *device_dir;
@@ -621,15 +540,13 @@ enable_sensors (GUdevDevice *dev,
 	g_free (device_dir);
 
 	if (!ret) {
-		g_warning ("Failed to enable any sensors for device '%s'",
-			   g_udev_device_get_sysfs_path (dev));
+		g_warning ("Failed to enable any sensors for device '%s'", g_udev_device_get_sysfs_path (dev));
 	}
 
 	return ret;
 }
 
-static gboolean
-enable_ring_buffer (BufferDrvData *data)
+static gboolean enable_ring_buffer (BufferDrvData *data)
 {
 	int ret;
 
@@ -649,8 +566,7 @@ enable_ring_buffer (BufferDrvData *data)
 	return TRUE;
 }
 
-static void
-disable_ring_buffer (BufferDrvData *data)
+static void disable_ring_buffer (BufferDrvData *data)
 {
 	/* Stop the buffer */
 	write_sysfs_int ("buffer/enable", data->dev_dir_name, 0);
@@ -659,14 +575,12 @@ disable_ring_buffer (BufferDrvData *data)
 	write_sysfs_string ("trigger/current_trigger", data->dev_dir_name, "NULL");
 }
 
-static gboolean
-enable_trigger (BufferDrvData *data)
+static gboolean enable_trigger (BufferDrvData *data)
 {
 	int ret;
 
 	/* Set the device trigger to be the data ready trigger */
-	ret = write_sysfs_string_and_verify("trigger/current_trigger",
-			data->dev_dir_name, data->trigger_name);
+	ret = write_sysfs_string_and_verify("trigger/current_trigger", data->dev_dir_name, data->trigger_name);
 	if (ret < 0) {
 		g_warning ("Failed to write current_trigger file %s", g_strerror(-ret));
 		return FALSE;
@@ -675,8 +589,7 @@ enable_trigger (BufferDrvData *data)
 	return TRUE;
 }
 
-static gboolean
-build_channels (BufferDrvData *data)
+static gboolean build_channels (BufferDrvData *data)
 {
 	/* Parse the files in scan_elements to identify what channels are present */
 	data->channels = build_channel_array (data->dev_dir_name, &(data->channels_count));
@@ -688,8 +601,7 @@ build_channels (BufferDrvData *data)
 	return TRUE;
 }
 
-void
-buffer_drv_data_free (BufferDrvData *buffer_data)
+void buffer_drv_data_free (BufferDrvData *buffer_data)
 {
 	int i;
 
@@ -708,9 +620,7 @@ buffer_drv_data_free (BufferDrvData *buffer_data)
 	g_free (buffer_data->channels);
 }
 
-BufferDrvData *
-buffer_drv_data_new (GUdevDevice *device,
-		     const char  *trigger_name)
+BufferDrvData* buffer_drv_data_new (GUdevDevice *device, const char  *trigger_name)
 {
 	BufferDrvData *buffer_data;
 
@@ -719,10 +629,7 @@ buffer_drv_data_new (GUdevDevice *device,
 	buffer_data->trigger_name = g_strdup (trigger_name);
 	buffer_data->device = g_object_ref (device);
 
-	if (!enable_sensors (device, 1) ||
-	    !enable_trigger (buffer_data) ||
-	    !enable_ring_buffer (buffer_data) ||
-	    !build_channels (buffer_data)) {
+	if (!enable_sensors (device, 1) || !enable_trigger (buffer_data) || !enable_ring_buffer (buffer_data) || !build_channels (buffer_data)) {
 		buffer_drv_data_free (buffer_data);
 		return NULL;
 	}

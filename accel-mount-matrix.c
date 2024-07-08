@@ -22,9 +22,7 @@ static AccelVec3 id_matrix[3] = {
 	{ 0.0, 0.0, 1.0 }
 };
 
-gboolean
-parse_mount_matrix (const char *mtx,
-		    AccelVec3  *vecs[3])
+gboolean parse_mount_matrix (const char *mtx, AccelVec3  *vecs[3])
 {
 	AccelVec3 *ret;
 
@@ -38,10 +36,7 @@ parse_mount_matrix (const char *mtx,
 	}
 
 	ret = g_new0 (AccelVec3, 3);
-	if (sscanf (mtx, "%f, %f, %f; %f, %f, %f; %f, %f, %f",
-		    &ret[0].x, &ret[0].y, &ret[0].z,
-		    &ret[1].x, &ret[1].y, &ret[1].z,
-		    &ret[2].x, &ret[2].y, &ret[2].z) != 9) {
+	if (sscanf (mtx, "%f, %f, %f; %f, %f, %f; %f, %f, %f", &ret[0].x, &ret[0].y, &ret[0].z, &ret[1].x, &ret[1].y, &ret[1].z, &ret[2].x, &ret[2].y, &ret[2].z) != 9) {
 		g_free (ret);
 		g_warning ("Failed to parse '%s' as a mount matrix", mtx);
 		return FALSE;
@@ -52,9 +47,7 @@ parse_mount_matrix (const char *mtx,
 	return TRUE;
 }
 
-gboolean
-apply_mount_matrix (const AccelVec3  vecs[3],
-		    AccelVec3       *accel)
+gboolean apply_mount_matrix (const AccelVec3 vecs[3], AccelVec3 *accel)
 {
 	float _x, _y, _z;
 
